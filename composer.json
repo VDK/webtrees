@@ -30,16 +30,6 @@
             "phpstan/extension-installer": true
         }
     },
-    "repositories": [
-        {
-            "type": "vcs",
-            "url": "../collection"
-        },
-        {
-            "type": "vcs",
-            "url": "../database"
-        }
-    ],
     "require": {
         "php": "8.3 - 8.6",
         "ext-ctype": "*",

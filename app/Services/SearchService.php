@@ -81,9 +81,9 @@ class SearchService
      */
     public function searchFamilies(array $trees, array $search): Collection
     {
-        $query = DB::queryBuilder()->from('families');
+        $query = DB::queryBuilder()->from('families')
+            ->whereIn('f_file', array_map(static fn (Tree $tree): int => $tree->id(), $trees));
 
-        $this->whereTrees($query, 'f_file', $trees);
         $this->whereSearch($query, 'f_gedcom', $search);
 
         // Remove accents when searching using PHP.
@@ -119,11 +119,11 @@ class SearchService
                     ->on('wife_name.n_file', '=', 'families.f_file')
                     ->on('wife_name.n_id', '=', 'families.f_wife')
                     ->where('wife_name.n_type', '<>', '_MARNM');
-            });
+            })
+            ->whereIn('f_file', array_map(static fn (Tree $tree): int => $tree->id(), $trees));
 
         $field  = new Expression('COALESCE(' . DB::prefix('husb_name') . ".n_full, '') || COALESCE(" . DB::prefix('wife_name') . ".n_full, '')");
 
-        $this->whereTrees($query, 'f_file', $trees);
         $this->whereSearch($query, $field, $search);
 
         $query
@@ -163,9 +163,9 @@ class SearchService
      */
     public function searchIndividuals(array $trees, array $search): Collection
     {
-        $query = DB::queryBuilder()->from('individuals');
+        $query = DB::queryBuilder()->from('individuals')
+            ->whereIn('i_file', array_map(static fn (Tree $tree): int => $tree->id(), $trees));
 
-        $this->whereTrees($query, 'i_file', $trees);
         $this->whereSearch($query, 'i_gedcom', $search);
 
         // Remove accents when searching using PHP.
@@ -195,10 +195,10 @@ class SearchService
                     ->on('name.n_file', '=', 'individuals.i_file')
                     ->on('name.n_id', '=', 'individuals.i_id');
             })
+            ->whereIn('i_file', array_map(static fn (Tree $tree): int => $tree->id(), $trees))
             ->orderBy('n_sort')
             ->select(['individuals.*', 'n_sort']);
 
-        $this->whereTrees($query, 'i_file', $trees);
         $this->whereSearch($query, 'n_full', $search);
 
         return $this->paginateQuery($query, $this->individualRowMapper(), GedcomRecord::accessFilter(), $offset, $limit);
@@ -236,9 +236,9 @@ class SearchService
     public function searchLocations(array $trees, array $search, int $offset = 0, int $limit = PHP_INT_MAX): Collection
     {
         $query = DB::queryBuilder()->from('other')
+            ->whereIn('o_file', array_map(static fn (Tree $tree): int => $tree->id(), $trees))
             ->where('o_type', '=', Location::RECORD_TYPE);
 
-        $this->whereTrees($query, 'o_file', $trees);
         $this->whereSearch($query, 'o_gedcom', $search);
 
         return $this->paginateQuery($query, $this->locationRowMapper(), GedcomRecord::accessFilter(), $offset, $limit);
@@ -254,9 +254,9 @@ class SearchService
      */
     public function searchMedia(array $trees, array $search, int $offset = 0, int $limit = PHP_INT_MAX): Collection
     {
-        $query = DB::queryBuilder()->from('media');
+        $query = DB::queryBuilder()->from('media')
+            ->whereIn('m_file', array_map(static fn (Tree $tree): int => $tree->id(), $trees));
 
-        $this->whereTrees($query, 'media.m_file', $trees);
         $this->whereSearch($query, 'm_gedcom', $search);
 
         return $this->paginateQuery($query, $this->mediaRowMapper(), GedcomRecord::accessFilter(), $offset, $limit);
@@ -273,9 +273,9 @@ class SearchService
     public function searchNotes(array $trees, array $search, int $offset = 0, int $limit = PHP_INT_MAX): Collection
     {
         $query = DB::queryBuilder()->from('other')
+            ->whereIn('o_file', array_map(static fn (Tree $tree): int => $tree->id(), $trees))
             ->where('o_type', '=', Note::RECORD_TYPE);
 
-        $this->whereTrees($query, 'o_file', $trees);
         $this->whereSearch($query, 'o_gedcom', $search);
 
         return $this->paginateQuery($query, $this->noteRowMapper(), GedcomRecord::accessFilter(), $offset, $limit);
@@ -292,9 +292,9 @@ class SearchService
     public function searchSharedNotes(array $trees, array $search, int $offset = 0, int $limit = PHP_INT_MAX): Collection
     {
         $query = DB::queryBuilder()->from('other')
+            ->whereIn('o_file', array_map(static fn (Tree $tree): int => $tree->id(), $trees))
             ->where('o_type', '=', SharedNote::RECORD_TYPE);
 
-        $this->whereTrees($query, 'o_file', $trees);
         $this->whereSearch($query, 'o_gedcom', $search);
 
         return $this->paginateQuery($query, $this->sharedNoteRowMapper(), GedcomRecord::accessFilter(), $offset, $limit);
@@ -311,9 +311,9 @@ class SearchService
     public function searchRepositories(array $trees, array $search, int $offset = 0, int $limit = PHP_INT_MAX): Collection
     {
         $query = DB::queryBuilder()->from('other')
+            ->whereIn('o_file', array_map(static fn (Tree $tree): int => $tree->id(), $trees))
             ->where('o_type', '=', Repository::RECORD_TYPE);
 
-        $this->whereTrees($query, 'o_file', $trees);
         $this->whereSearch($query, 'o_gedcom', $search);
 
         return $this->paginateQuery($query, $this->repositoryRowMapper(), GedcomRecord::accessFilter(), $offset, $limit);
@@ -329,9 +329,9 @@ class SearchService
      */
     public function searchSources(array $trees, array $search, int $offset = 0, int $limit = PHP_INT_MAX): Collection
     {
-        $query = DB::queryBuilder()->from('sources');
+        $query = DB::queryBuilder()->from('sources')
+            ->whereIn('s_file', array_map(static fn (Tree $tree): int => $tree->id(), $trees));
 
-        $this->whereTrees($query, 's_file', $trees);
         $this->whereSearch($query, 's_gedcom', $search);
 
         return $this->paginateQuery($query, $this->sourceRowMapper(), GedcomRecord::accessFilter(), $offset, $limit);
@@ -348,9 +348,9 @@ class SearchService
     public function searchSourcesByName(array $trees, array $search, int $offset = 0, int $limit = PHP_INT_MAX): Collection
     {
         $query = DB::queryBuilder()->from('sources')
+            ->whereIn('s_file', array_map(static fn (Tree $tree): int => $tree->id(), $trees))
             ->orderBy('s_name');
 
-        $this->whereTrees($query, 's_file', $trees);
         $this->whereSearch($query, 's_name', $search);
 
         return $this->paginateQuery($query, $this->sourceRowMapper(), GedcomRecord::accessFilter(), $offset, $limit);
@@ -366,9 +366,9 @@ class SearchService
      */
     public function searchSurnames(array $trees, array $search, int $offset = 0, int $limit = PHP_INT_MAX): Collection
     {
-        $query = DB::queryBuilder()->from('name');
+        $query = DB::queryBuilder()->from('name')
+            ->whereIn('n_file', array_map(static fn (Tree $tree): int => $tree->id(), $trees));
 
-        $this->whereTrees($query, 'n_file', $trees);
         $this->whereSearch($query, 'n_surname', $search);
 
         return $query
@@ -390,9 +390,9 @@ class SearchService
     public function searchSubmissions(array $trees, array $search, int $offset = 0, int $limit = PHP_INT_MAX): Collection
     {
         $query = DB::queryBuilder()->from('other')
+            ->whereIn('o_file', array_map(static fn (Tree $tree): int => $tree->id(), $trees))
             ->where('o_type', '=', Submission::RECORD_TYPE);
 
-        $this->whereTrees($query, 'o_file', $trees);
         $this->whereSearch($query, 'o_gedcom', $search);
 
         return $this->paginateQuery($query, $this->submissionRowMapper(), GedcomRecord::accessFilter(), $offset, $limit);
@@ -409,9 +409,9 @@ class SearchService
     public function searchSubmitters(array $trees, array $search, int $offset = 0, int $limit = PHP_INT_MAX): Collection
     {
         $query = DB::queryBuilder()->from('other')
+            ->whereIn('o_file', array_map(static fn (Tree $tree): int => $tree->id(), $trees))
             ->where('o_type', '=', Submitter::RECORD_TYPE);
 
-        $this->whereTrees($query, 'o_file', $trees);
         $this->whereSearch($query, 'o_gedcom', $search);
 
         return $this->paginateQuery($query, $this->submitterRowMapper(), GedcomRecord::accessFilter(), $offset, $limit);
@@ -945,10 +945,9 @@ class SearchService
         }
 
         $query = DB::queryBuilder()->from('individuals')
+            ->whereIn('i_file', array_map(static fn (Tree $tree): int => $tree->id(), $trees))
             ->select(['individuals.*'])
             ->distinct();
-
-        $this->whereTrees($query, 'i_file', $search_trees);
 
         if ($plac_sdx !== '') {
             $query->join('placelinks', static function (JoinClause $join): void {
@@ -1055,39 +1054,6 @@ class SearchService
     }
 
     /**
-     * @param array<Tree> $trees
-     */
-    private function whereTrees(Builder $query, string $tree_id_field, array $trees): void
-    {
-        $tree_ids = array_map(static fn (Tree $tree): int => $tree->id(), $trees);
-
-        $query->whereIn($tree_id_field, $tree_ids);
-    }
-
-    /**
-     * Find the media object that uses a particular media file.
-     *
-     *
-     * @return array<Media>
-     */
-    public function findMediaObjectsForMediaFile(string $file): array
-    {
-        return DB::queryBuilder()->from('media')
-            ->join('media_file', static function (JoinClause $join): void {
-                $join
-                    ->on('media_file.m_file', '=', 'media.m_file')
-                    ->on('media_file.m_id', '=', 'media.m_id');
-            })
-            ->join('gedcom_setting', 'media.m_file', '=', 'gedcom_setting.gedcom_id')
-            ->where(new Expression(DB::concatenate(['setting_value', 'multimedia_file_refn'])), '=', $file)
-            ->select(['media.*'])
-            ->distinct()
-            ->get()
-            ->map($this->mediaRowMapper())
-            ->all();
-    }
-
-    /**
      * A closure to filter records by privacy-filtered GEDCOM data.
      *
      * @param array<string> $search_terms
@@ -1125,7 +1091,6 @@ class SearchService
 
     /**
      * Searching for short or common text can give more results than the system can process.
-     *
      *
      * @return Closure():void
      */

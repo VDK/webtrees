@@ -148,7 +148,7 @@ final class DB extends BaseDB
         ]);
         $capsule->setAsGlobal();
 
-        //parent::attach(pdo: Manager::connection()->getPdo(), prefix: $prefix);
+        parent::attach(pdo: Manager::connection()->getPdo(), prefix: $prefix);
 
         $sql = self::DRIVER_INITIALIZATION[$driver];
 
